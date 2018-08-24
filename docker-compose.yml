@@ -21,6 +21,9 @@ services:
       traefik.port: '8080'
       com.centurylinklabs.watchtower.enable: 'true'
     restart: unless-stopped
+    depends_on: 
+      - "rcloneSeries"
+      - "rcloneSeriesCache"
   plex:
     image: linuxserver/plex
     container_name: plex
@@ -70,6 +73,7 @@ services:
     container_name: sonarr
     depends_on:
       - sabnzbd
+      - rcloneSeriesCache
     volumes:
       - '${CONFIG}/sonarr:/config'
       - '${DATA}/Series:/tv'
@@ -199,7 +203,7 @@ services:
       - TZ
   rcloneSeries:
     image: mumiehub/rclone-mount
-    command: --cap-add SYS_ADMIN --device /dev/fuse --security-opt apparmor:unconfined
+    command: --cap-add=SYS_ADMIN --device=/dev/fuse --security-opt=apparmor:unconfined
     container_name: rcloneSeries
     volumes:
       - '${CONFIG}/rclone:/config'
@@ -210,10 +214,12 @@ services:
   rcloneSeriesCache:
     image: mumiehub/rclone-mount
     command: --cap-add SYS_ADMIN --device /dev/fuse --security-opt apparmor:unconfined
-    container_name: rcloneSeries
+    container_name: rcloneSeriesCache
     volumes:
       - '${CONFIG}/rclone:/config'
       - '${DATA}/Series_2:/mnt/mediaefs:shared'
     environment: 
       - RemotePath="DropboxCache:"
       - MountCommands="--allow-other"
+    depends_on: 
+      - "rcloneSeries"
