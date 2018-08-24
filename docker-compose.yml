@@ -1,0 +1,219 @@
+version: '3'
+services:
+  traefik:
+    image: 'traefik:latest'
+    command: >-
+      --web --docker --docker.watch --docker.domain=${DOMAIN}
+      --docker.exposedbydefault=false --acme.domains=${DOMAIN}
+    container_name: traefik
+    hostname: traefik
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
+      - '${CONFIG}/traefik/acme.json:/acme.json'
+      - '${CONFIG}/traefik/traefik.toml:/etc/traefik/traefik.toml'
+      - '${CONFIG}/traefik/.htpasswd:/etc/traefik/.htpasswd:ro'
+    labels:
+      traefik.enable: 'true'
+      traefik.frontend.rule: 'Host:monitor.${DOMAIN}'
+      traefik.port: '8080'
+      com.centurylinklabs.watchtower.enable: 'true'
+    restart: unless-stopped
+  plex:
+    image: linuxserver/plex
+    container_name: plex
+    hostname: plex
+    ports:
+      - '32400:32400'
+      - '32400:32400/udp'
+      - '32469:32469'
+      - '32469:32469/udp'
+      - '5353:5353/udp'
+      - '1900:1900/udp'
+    volumes:
+      - '${CONFIG}/plex:/config'
+      - '${DATA}/Series:/media/series'
+      - '${DATA}/Movies:/media/movies'
+      - '${DATA}/Series_2:/media/series_2'
+    environment:
+      - PGID
+      - PUID
+      - TZ
+      - VERSION=latest
+    labels:
+      traefik.enable: 'true'
+      traefik.port: '32400'
+      traefik.frontend.rule: 'Host:plex.${DOMAIN}'
+      com.centurylinklabs.watchtower.enable: 'true'
+    restart: unless-stopped
+  sabnzbd:
+    image: linuxserver/sabnzbd
+    container_name: sabnzbd
+    volumes:
+      - '${CONFIG}/sabnzbd:/config'
+      - '${DOWNLOADS}/complete:/downloads'
+      - '${DOWNLOADS}/incomplete:/incomplete-downloads'
+    restart: unless-stopped
+    labels:
+      traefik.enable: 'true'
+      traefik.port: '8080'
+      traefik.frontend.rule: 'Host:sabnzbd.${DOMAIN}'
+      com.centurylinklabs.watchtower.enable: 'true'
+    environment:
+      - 'PUID=${PUID}'
+      - 'PGID=${PGID}'
+      - TZ=Europe/London
+  sonarr:
+    image: linuxserver/sonarr
+    container_name: sonarr
+    depends_on:
+      - sabnzbd
+    volumes:
+      - '${CONFIG}/sonarr:/config'
+      - '${DATA}/Series:/tv'
+      - '${DATA}/Series_2:/tv2'
+      - '${DOWNLOADS}/complete:/downloads'
+    links:
+      - sabnzbd
+    restart: unless-stopped
+    labels:
+      traefik.enable: 'true'
+      traefik.port: '8989'
+      traefik.frontend.rule: 'Host:sonarr.${DOMAIN}'
+      com.centurylinklabs.watchtower.enable: 'true'
+    environment:
+      - 'PUID=${PUID}'
+      - 'PGID=${PGID}'
+  radarr:
+    image: linuxserver/radarr
+    container_name: radarr
+    links:
+      - sabnzbd
+    volumes:
+      - '${CONFIG}/radarr:/config'
+      - '${DOWNLOADS}/complete:/downloads'
+      - '${DATA}/Movies:/movies'
+    restart: unless-stopped
+    environment:
+      - 'PUID=${PUID}'
+      - 'PGID=${PGID}'
+    labels:
+      traefik.enable: 'true'
+      traefik.port: '7878'
+      traefik.frontend.rule: 'Host:radarr.${DOMAIN}'
+      com.centurylinklabs.watchtower.enable: 'true'
+  portainer:
+    image: portainer/portainer
+    container_name: portainer
+    volumes:
+      - '${CONFIG}/portainer:/data'
+      - '/var/run/docker.sock:/var/run/docker.sock'
+    restart: unless-stopped
+    labels:
+      traefik.enable: 'true'
+      traefik.port: '9000'
+      traefik.frontend.rule: 'Host:portainer.${DOMAIN}'
+      com.centurylinklabs.watchtower.enable: 'true'
+  netdata:
+    container_name: netdata
+    image: titpetric/netdata
+    restart: unless-stopped
+    cap_add:
+      - SYS_PTRACE
+    environment:
+      - TZ=Europe/Zurich
+      - 'PUID=${PUID}'
+      - 'PGID=${PGID}'
+    volumes:
+      - '${CONFIG}/netdata:/etc/netdata'
+      - '/proc:/host/proc:ro'
+      - '/sys:/host/sys:ro'
+      - '/var/run/docker.sock:/var/run/docker.sock'
+    labels:
+      traefik.enable: 'true'
+      traefik.port: '19999'
+      traefik.frontend.rule: 'Host:netdata.${DOMAIN}'
+      com.centurylinklabs.watchtower.enable: 'true'
+  watchtower:
+    image: v2tec/watchtower
+    command: '--cleanup --label-enable --schedule="0 2 * * *"'
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock'
+  ombi:
+    container_name: ombi
+    image: linuxserver/ombi
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Zurich
+      - 'PUID=${PUID}'
+      - 'PGID=${PGID}'
+      - EAP=1
+    volumes:
+      - '${CONFIG}/ombi:/config'
+    labels:
+      traefik.enable: 'true'
+      traefik.port: '3579'
+      traefik.frontend.rule: 'Host:ombi.${DOMAIN}'
+      com.centurylinklabs.watchtower.enable: 'true'
+  jdownloader-2:
+    image: jlesage/jdownloader-2
+    volumes:
+      - '${CONFIG}/jdownloader-2:/config:rw'
+      - '/opt/downloads_2:/output:rw'
+    restart: unless-stopped
+    labels:
+      traefik.enable: 'true'
+      traefik.port: '5800'
+      traefik.frontend.rule: 'Host:jdownloader.${DOMAIN}'
+      com.centurylinklabs.watchtower.enable: 'true'
+  organzir:
+    image: lsiocommunity/organizr
+    container_name: organizr
+    volumes:
+      - '${CONFIG}/organizr:/config'
+    restart: unless-stopped
+    labels:
+      traefik.enable: 'true'
+      traefik.port: '80'
+      traefik.frontend.rule: 'Host:${DOMAIN}'
+      com.centurylinklabs.watchtower.enable: 'true'
+  plexpy:
+    image: 'linuxserver/tautulli:latest'
+    container_name: tautulli
+    hostname: tautulli
+    volumes:
+      - '${CONFIG}/plexpy:/config'
+      - >-
+        ${CONFIG}/plex/Library/Application Support/Plex Media
+        Server/Logs:/logs:ro
+    labels:
+      traefik.enable: 'true'
+      traefik.port: '8181'
+      traefik.frontend.rule: 'Host:tautulli.${DOMAIN}'
+      com.centurylinklabs.watchtower.enable: 'true'
+    environment:
+      - PGID
+      - PUID
+      - TZ
+  rcloneSeries:
+    image: mumiehub/rclone-mount
+    command: --cap-add SYS_ADMIN --device /dev/fuse --security-opt apparmor:unconfined
+    container_name: rcloneSeries
+    volumes:
+      - '${CONFIG}/rclone:/config'
+      - '${DATA}/dpSeries:/mnt/mediaefs:shared'
+    environment: 
+      - RemotePath="Dropbox:/Series"
+      - MountCommands="--allow-other --acd-templink-threshold 0 --stats 1s --buffer-size 1G --timeout 5s --contimeout 5s"
+  rcloneSeriesCache:
+    image: mumiehub/rclone-mount
+    command: --cap-add SYS_ADMIN --device /dev/fuse --security-opt apparmor:unconfined
+    container_name: rcloneSeries
+    volumes:
+      - '${CONFIG}/rclone:/config'
+      - '${DATA}/Series_2:/mnt/mediaefs:shared'
+    environment: 
+      - RemotePath="DropboxCache:"
+      - MountCommands="--allow-other"
