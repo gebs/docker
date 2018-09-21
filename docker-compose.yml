@@ -21,9 +21,6 @@ services:
       traefik.port: '8080'
       com.centurylinklabs.watchtower.enable: 'true'
     restart: unless-stopped
-    depends_on: 
-      - "rcloneSeries"
-      - "rcloneSeriesCache"
   plex:
     image: linuxserver/plex
     container_name: plex
@@ -73,7 +70,6 @@ services:
     container_name: sonarr
     depends_on:
       - sabnzbd
-      - rcloneSeriesCache
     volumes:
       - '${CONFIG}/sonarr:/config'
       - '${DATA}/Series:/tv'
@@ -143,6 +139,7 @@ services:
   watchtower:
     image: v2tec/watchtower
     command: '--cleanup --label-enable --schedule="0 2 * * *"'
+    restart: unless-stopped
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock'
   ombi:
@@ -187,6 +184,7 @@ services:
     image: 'linuxserver/tautulli:latest'
     container_name: tautulli
     hostname: tautulli
+    restart: unless-stopped
     volumes:
       - '${CONFIG}/plexpy:/config'
       - >-
@@ -196,6 +194,40 @@ services:
       traefik.enable: 'true'
       traefik.port: '8181'
       traefik.frontend.rule: 'Host:tautulli.${DOMAIN}'
+      com.centurylinklabs.watchtower.enable: 'true'
+    environment:
+      - PGID
+      - PUID
+      - TZ
+  duplicati:
+    image: linuxserver/duplicati
+    container_name: duplicati
+    restart: unless-stopped
+    volumes:
+      - '${CONFIG}/duplicati:/config'
+      - '/opt/backup:/backup'
+      - '${CONFIG}:/source'
+    labels:
+      traefik.enable: 'true'
+      traefik.port: '8200'
+      traefik.frontend.rule: 'Host:duplicati.${DOMAIN}'
+      com.centurylinklabs.watchtower.enable: 'true'
+    environment:
+      - PGID
+      - PUID
+      - TZ
+  bazarr:
+    image: morpheus65535/bazarr:latest
+    container_name: bazarr
+    restart: unless-stopped
+    volumes:
+      - '${DATA}/Series_2:/tv'
+      - '${DATA}/Movies:/movies'
+      - '${CONFIG}/bazarr:/bazarr/data'
+    labels:
+      traefik.enable: 'true'
+      traefik.port: '6767'
+      traefik.frontend.rule: 'Host:bazarr.${DOMAIN}'
       com.centurylinklabs.watchtower.enable: 'true'
     environment:
       - PGID
