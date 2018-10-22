@@ -224,7 +224,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: '${MYSQLROOTPW}'
       MYSQL_DATABASE: 'wordpress'
-      MYSQL_USER: wordpress
+      MYSQL_USER: 'wordpress'
       MYSQL_PASSWORD: '${WPUSERPW}'
   wordpress:
     depends_on:
@@ -232,8 +232,8 @@ services:
     image: wordpress:latest
     restart: unless-stopped
     environment:
-      - WORDPRESS_DB_HOST: wpdb:3306
-      - WORDPRESS_DB_USER: wordpress
+      - WORDPRESS_DB_HOST: 'wpdb:3306'
+      - WORDPRESS_DB_USER: 'wordpress'
       - WORDPRESS_DB_PASSWORD: '${WPUSERPW}'
     labels:
       traefik.enable: 'true'
