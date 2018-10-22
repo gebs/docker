@@ -216,3 +216,27 @@ services:
       - PGID
       - PUID
       - TZ
+  wpdb:
+    image: mysql:5.7
+    volumes:
+      - '${CONFIG}/wpdb:/var/lib/mysql'
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: '${MYSQLROOTPW}'
+      MYSQL_DATABASE: 'wordpress'
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: '${WPUSERPW}'
+  wordpress:
+    depends_on:
+      - wpdb
+    image: wordpress:latest
+    restart: unless-stopped
+    environment:
+      - WORDPRESS_DB_HOST: wpdb:3306
+      - WORDPRESS_DB_USER: wordpress
+      - WORDPRESS_DB_PASSWORD: '${WPUSERPW}'
+    labels:
+      traefik.enable: 'true'
+      traefik.port: '80'
+      traefik.frontend.rule: 'Host:blog.${DOMAIN}'
+      com.centurylinklabs.watchtower.enable: 'true'
