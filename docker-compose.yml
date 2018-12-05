@@ -216,6 +216,14 @@ services:
       - PGID
       - PUID
       - TZ
+  ddclient:
+    image: linuxserver/ddclient
+    container_name: ddclient
+    volumes:
+      - ${CONFIG}/ddclient:/config
+    labels:
+      com.centurylinklabs.watchtower.enable: "true"
+    restart: unless-stopped
   wpdb:
     image: mysql:5.7
     volumes:
