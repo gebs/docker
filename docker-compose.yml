@@ -37,6 +37,7 @@ services:
       - '${DATA}/Series:/media/series'
       - '${DATA}/Movies:/media/movies'
       - '${DATA}/Series_2:/media/series_2'
+      - '${DATA}/Movies_2:/media/movies_2'
     environment:
       - PGID
       - PUID
