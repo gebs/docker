@@ -96,6 +96,7 @@ services:
       - '${CONFIG}/radarr:/config'
       - '${DOWNLOADS}/complete:/downloads'
       - '${DATA}/Movies:/movies'
+      - '${DATA}/Movies_2:/movies2'
     restart: unless-stopped
     environment:
       - 'PUID=${PUID}'
