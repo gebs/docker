@@ -205,8 +205,6 @@ services:
     image: linuxserver/duplicati
     container_name: duplicati
     restart: unless-stopped
-    ports:
-      - 8200:8200
     volumes:
       - "${CONFIG}/duplicati:/config"
       - "/opt/backup:/backup"
