@@ -1,70 +1,70 @@
-version: '3'
+version: "3"
 services:
   traefik:
-    image: 'traefik:latest'
+    image: "traefik:latest"
     command: >-
       --web --docker --docker.watch --docker.domain=${DOMAIN}
       --docker.exposedbydefault=false --acme.domains=${DOMAIN}
     container_name: traefik
     hostname: traefik
     ports:
-      - '80:80'
-      - '443:443'
+      - "80:80"
+      - "443:443"
     volumes:
-      - '/var/run/docker.sock:/var/run/docker.sock:ro'
-      - '${CONFIG}/traefik/acme.json:/acme.json'
-      - '${CONFIG}/traefik/traefik.toml:/etc/traefik/traefik.toml'
-      - '${CONFIG}/traefik/.htpasswd:/etc/traefik/.htpasswd:ro'
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "${CONFIG}/traefik/acme.json:/acme.json"
+      - "${CONFIG}/traefik/traefik.toml:/etc/traefik/traefik.toml"
+      - "${CONFIG}/traefik/.htpasswd:/etc/traefik/.htpasswd:ro"
     labels:
-      traefik.enable: 'true'
-      traefik.frontend.rule: 'Host:monitor.${DOMAIN}'
-      traefik.port: '8080'
-      com.centurylinklabs.watchtower.enable: 'true'
+      traefik.enable: "true"
+      traefik.frontend.rule: "Host:monitor.${DOMAIN}"
+      traefik.port: "8080"
+      com.centurylinklabs.watchtower.enable: "true"
     restart: unless-stopped
   plex:
     image: linuxserver/plex
     container_name: plex
     hostname: plex
     ports:
-      - '32400:32400'
-      - '32400:32400/udp'
-      - '32469:32469'
-      - '32469:32469/udp'
-      - '5353:5353/udp'
-      - '1900:1900/udp'
+      - "32400:32400"
+      - "32400:32400/udp"
+      - "32469:32469"
+      - "32469:32469/udp"
+      - "5353:5353/udp"
+      - "1900:1900/udp"
     volumes:
-      - '${CONFIG}/plex:/config'
-      - '${DATA}/Series:/media/series'
-      - '${DATA}/Movies:/media/movies'
-      - '${DATA}/Series_2:/media/series_2'
-      - '${DATA}/Movies_2:/media/movies_2'
+      - "${CONFIG}/plex:/config"
+      - "${DATA}/Series:/media/series"
+      - "${DATA}/Movies:/media/movies"
+      - "${DATA}/Series_2:/media/series_2"
+      - "${DATA}/Movies_2:/media/movies_2"
     environment:
       - PGID
       - PUID
       - TZ
       - VERSION=latest
     labels:
-      traefik.enable: 'true'
-      traefik.port: '32400'
-      traefik.frontend.rule: 'Host:plex.${DOMAIN}'
-      com.centurylinklabs.watchtower.enable: 'true'
+      traefik.enable: "true"
+      traefik.port: "32400"
+      traefik.frontend.rule: "Host:plex.${DOMAIN}"
+      com.centurylinklabs.watchtower.enable: "true"
     restart: unless-stopped
   sabnzbd:
     image: linuxserver/sabnzbd
     container_name: sabnzbd
     volumes:
-      - '${CONFIG}/sabnzbd:/config'
-      - '${DOWNLOADS}/complete:/downloads'
-      - '${DOWNLOADS}/incomplete:/incomplete-downloads'
+      - "${CONFIG}/sabnzbd:/config"
+      - "${DOWNLOADS}/complete:/downloads"
+      - "${DOWNLOADS}/incomplete:/incomplete-downloads"
     restart: unless-stopped
     labels:
-      traefik.enable: 'true'
-      traefik.port: '8080'
-      traefik.frontend.rule: 'Host:sabnzbd.${DOMAIN}'
-      com.centurylinklabs.watchtower.enable: 'true'
+      traefik.enable: "true"
+      traefik.port: "8080"
+      traefik.frontend.rule: "Host:sabnzbd.${DOMAIN}"
+      com.centurylinklabs.watchtower.enable: "true"
     environment:
-      - 'PUID=${PUID}'
-      - 'PGID=${PGID}'
+      - "PUID=${PUID}"
+      - "PGID=${PGID}"
       - TZ=Europe/London
   sonarr:
     image: linuxserver/sonarr
@@ -72,52 +72,52 @@ services:
     depends_on:
       - sabnzbd
     volumes:
-      - '${CONFIG}/sonarr:/config'
-      - '${DATA}/Series:/tv'
-      - '${DATA}/Series_2:/tv2'
-      - '${DOWNLOADS}/complete:/downloads'
+      - "${CONFIG}/sonarr:/config"
+      - "${DATA}/Series:/tv"
+      - "${DATA}/Series_2:/tv2"
+      - "${DOWNLOADS}/complete:/downloads"
     links:
       - sabnzbd
     restart: unless-stopped
     labels:
-      traefik.enable: 'true'
-      traefik.port: '8989'
-      traefik.frontend.rule: 'Host:sonarr.${DOMAIN}'
-      com.centurylinklabs.watchtower.enable: 'true'
+      traefik.enable: "true"
+      traefik.port: "8989"
+      traefik.frontend.rule: "Host:sonarr.${DOMAIN}"
+      com.centurylinklabs.watchtower.enable: "true"
     environment:
-      - 'PUID=${PUID}'
-      - 'PGID=${PGID}'
+      - "PUID=${PUID}"
+      - "PGID=${PGID}"
   radarr:
     image: linuxserver/radarr
     container_name: radarr
     links:
       - sabnzbd
     volumes:
-      - '${CONFIG}/radarr:/config'
-      - '${DOWNLOADS}/complete:/downloads'
-      - '${DATA}/Movies:/movies'
-      - '${DATA}/Movies_2:/movies2'
+      - "${CONFIG}/radarr:/config"
+      - "${DOWNLOADS}/complete:/downloads"
+      - "${DATA}/Movies:/movies"
+      - "${DATA}/Movies_2:/movies2"
     restart: unless-stopped
     environment:
-      - 'PUID=${PUID}'
-      - 'PGID=${PGID}'
+      - "PUID=${PUID}"
+      - "PGID=${PGID}"
     labels:
-      traefik.enable: 'true'
-      traefik.port: '7878'
-      traefik.frontend.rule: 'Host:radarr.${DOMAIN}'
-      com.centurylinklabs.watchtower.enable: 'true'
+      traefik.enable: "true"
+      traefik.port: "7878"
+      traefik.frontend.rule: "Host:radarr.${DOMAIN}"
+      com.centurylinklabs.watchtower.enable: "true"
   portainer:
     image: portainer/portainer
     container_name: portainer
     volumes:
-      - '${CONFIG}/portainer:/data'
-      - '/var/run/docker.sock:/var/run/docker.sock'
+      - "${CONFIG}/portainer:/data"
+      - "/var/run/docker.sock:/var/run/docker.sock"
     restart: unless-stopped
     labels:
-      traefik.enable: 'true'
-      traefik.port: '9000'
-      traefik.frontend.rule: 'Host:portainer.${DOMAIN}'
-      com.centurylinklabs.watchtower.enable: 'true'
+      traefik.enable: "true"
+      traefik.port: "9000"
+      traefik.frontend.rule: "Host:portainer.${DOMAIN}"
+      com.centurylinklabs.watchtower.enable: "true"
   netdata:
     container_name: netdata
     image: titpetric/netdata
@@ -126,77 +126,77 @@ services:
       - SYS_PTRACE
     environment:
       - TZ=Europe/Zurich
-      - 'PUID=${PUID}'
-      - 'PGID=${PGID}'
+      - "PUID=${PUID}"
+      - "PGID=${PGID}"
     volumes:
-      - '${CONFIG}/netdata:/etc/netdata'
-      - '/proc:/host/proc:ro'
-      - '/sys:/host/sys:ro'
-      - '/var/run/docker.sock:/var/run/docker.sock'
+      - "${CONFIG}/netdata:/etc/netdata"
+      - "/proc:/host/proc:ro"
+      - "/sys:/host/sys:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock"
     labels:
-      traefik.enable: 'true'
-      traefik.port: '19999'
-      traefik.frontend.rule: 'Host:netdata.${DOMAIN}'
-      com.centurylinklabs.watchtower.enable: 'true'
+      traefik.enable: "true"
+      traefik.port: "19999"
+      traefik.frontend.rule: "Host:netdata.${DOMAIN}"
+      com.centurylinklabs.watchtower.enable: "true"
   watchtower:
     image: v2tec/watchtower
     command: '--cleanup --label-enable --schedule="0 2 * * *"'
     restart: unless-stopped
     volumes:
-      - '/var/run/docker.sock:/var/run/docker.sock'
+      - "/var/run/docker.sock:/var/run/docker.sock"
   ombi:
     container_name: ombi
     image: linuxserver/ombi
     restart: unless-stopped
     environment:
       - TZ=Europe/Zurich
-      - 'PUID=${PUID}'
-      - 'PGID=${PGID}'
+      - "PUID=${PUID}"
+      - "PGID=${PGID}"
       - EAP=1
     volumes:
-      - '${CONFIG}/ombi:/config'
+      - "${CONFIG}/ombi:/config"
     labels:
-      traefik.enable: 'true'
-      traefik.port: '3579'
-      traefik.frontend.rule: 'Host:ombi.${DOMAIN}'
-      com.centurylinklabs.watchtower.enable: 'true'
+      traefik.enable: "true"
+      traefik.port: "3579"
+      traefik.frontend.rule: "Host:ombi.${DOMAIN}"
+      com.centurylinklabs.watchtower.enable: "true"
   jdownloader-2:
     image: jlesage/jdownloader-2
     volumes:
-      - '${CONFIG}/jdownloader-2:/config:rw'
-      - '/opt/downloads_2:/output:rw'
+      - "${CONFIG}/jdownloader-2:/config:rw"
+      - "/opt/downloads_2:/output:rw"
     restart: unless-stopped
     labels:
-      traefik.enable: 'true'
-      traefik.port: '5800'
-      traefik.frontend.rule: 'Host:jdownloader.${DOMAIN}'
-      com.centurylinklabs.watchtower.enable: 'true'
+      traefik.enable: "true"
+      traefik.port: "5800"
+      traefik.frontend.rule: "Host:jdownloader.${DOMAIN}"
+      com.centurylinklabs.watchtower.enable: "true"
   organzir:
     image: lsiocommunity/organizr
     container_name: organizr
     volumes:
-      - '${CONFIG}/organizr:/config'
+      - "${CONFIG}/organizr:/config"
     restart: unless-stopped
     labels:
-      traefik.enable: 'true'
-      traefik.port: '80'
-      traefik.frontend.rule: 'Host:${DOMAIN}'
-      com.centurylinklabs.watchtower.enable: 'true'
+      traefik.enable: "true"
+      traefik.port: "80"
+      traefik.frontend.rule: "Host:${DOMAIN}"
+      com.centurylinklabs.watchtower.enable: "true"
   plexpy:
-    image: 'linuxserver/tautulli:latest'
+    image: "linuxserver/tautulli:latest"
     container_name: tautulli
     hostname: tautulli
     restart: unless-stopped
     volumes:
-      - '${CONFIG}/plexpy:/config'
+      - "${CONFIG}/plexpy:/config"
       - >-
         ${CONFIG}/plex/Library/Application Support/Plex Media
         Server/Logs:/logs:ro
     labels:
-      traefik.enable: 'true'
-      traefik.port: '8181'
-      traefik.frontend.rule: 'Host:tautulli.${DOMAIN}'
-      com.centurylinklabs.watchtower.enable: 'true'
+      traefik.enable: "true"
+      traefik.port: "8181"
+      traefik.frontend.rule: "Host:tautulli.${DOMAIN}"
+      com.centurylinklabs.watchtower.enable: "true"
     environment:
       - PGID
       - PUID
@@ -205,15 +205,17 @@ services:
     image: linuxserver/duplicati
     container_name: duplicati
     restart: unless-stopped
+    ports:
+      - 8200:8200
     volumes:
-      - '${CONFIG}/duplicati:/config'
-      - '/opt/backup:/backup'
-      - '${CONFIG}:/source'
+      - "${CONFIG}/duplicati:/config"
+      - "/opt/backup:/backup"
+      - "${CONFIG}:/source"
     labels:
-      traefik.enable: 'true'
-      traefik.port: '8200'
-      traefik.frontend.rule: 'Host:duplicati.${DOMAIN}'
-      com.centurylinklabs.watchtower.enable: 'true'
+      traefik.enable: "true"
+      traefik.port: "8200"
+      traefik.frontend.rule: "Host:duplicati.${DOMAIN}"
+      com.centurylinklabs.watchtower.enable: "true"
     environment:
       - PGID
       - PUID
@@ -229,24 +231,24 @@ services:
   wpdb:
     image: mysql:5.7
     volumes:
-      - '${CONFIG}/wpdb:/var/lib/mysql'
+      - "${CONFIG}/wpdb:/var/lib/mysql"
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: '${MYSQLROOTPW}'
-      MYSQL_DATABASE: 'wordpress'
-      MYSQL_USER: 'wordpress'
-      MYSQL_PASSWORD: '${WPUSERPW}'
+      MYSQL_ROOT_PASSWORD: "${MYSQLROOTPW}"
+      MYSQL_DATABASE: "wordpress"
+      MYSQL_USER: "wordpress"
+      MYSQL_PASSWORD: "${WPUSERPW}"
   wordpress:
     depends_on:
       - wpdb
     image: wordpress:latest
     restart: unless-stopped
     environment:
-      WORDPRESS_DB_HOST: 'wpdb:3306'
-      WORDPRESS_DB_USER: 'wordpress'
-      WORDPRESS_DB_PASSWORD: '${WPUSERPW}'
+      WORDPRESS_DB_HOST: "wpdb:3306"
+      WORDPRESS_DB_USER: "wordpress"
+      WORDPRESS_DB_PASSWORD: "${WPUSERPW}"
     labels:
-      traefik.enable: 'true'
-      traefik.port: '80'
-      traefik.frontend.rule: 'Host:blog.${DOMAIN}'
-      com.centurylinklabs.watchtower.enable: 'true'
+      traefik.enable: "true"
+      traefik.port: "80"
+      traefik.frontend.rule: "Host:blog.${DOMAIN}"
+      com.centurylinklabs.watchtower.enable: "true"
