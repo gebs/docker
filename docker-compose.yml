@@ -36,8 +36,8 @@ services:
       - "${CONFIG}/plex:/config"
       - "${DATA}/Series:/media/series"
       - "${DATA}/Movies:/media/movies"
-      - "${DATA}/Series_2:/media/series_2"
-      - "${DATA}/Movies_2:/media/movies_2"
+      - "${DATA}/series:/media/series_2"
+      - "${DATA}/movies:/media/movies_2"
     environment:
       - PGID
       - PUID
@@ -73,8 +73,7 @@ services:
       - sabnzbd
     volumes:
       - "${CONFIG}/sonarr:/config"
-      - "${DATA}/Series:/tv"
-      - "${DATA}/Series_2:/tv2"
+      - "${DATA}/series:/tv2"
       - "${DOWNLOADS}/complete:/downloads"
     links:
       - sabnzbd
@@ -95,8 +94,7 @@ services:
     volumes:
       - "${CONFIG}/radarr:/config"
       - "${DOWNLOADS}/complete:/downloads"
-      - "${DATA}/Movies:/movies"
-      - "${DATA}/Movies_2:/movies2"
+      - "${DATA}/movies:/movies2"
     restart: unless-stopped
     environment:
       - "PUID=${PUID}"
