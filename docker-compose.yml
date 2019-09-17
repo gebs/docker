@@ -3,7 +3,7 @@ services:
   traefik:
     image: "traefik:latest"
     command: >-
-      --web --docker --docker.watch --docker.domain=${DOMAIN}
+      --api.insecure=true --web --providers.docker --docker.watch --docker.domain=${DOMAIN}
       --docker.exposedbydefault=false --acme.domains=${DOMAIN}
     container_name: traefik
     hostname: traefik
@@ -17,7 +17,8 @@ services:
       - "${CONFIG}/traefik/.htpasswd:/etc/traefik/.htpasswd:ro"
     labels:
       traefik.enable: "true"
-      traefik.frontend.rule: "Host:monitor.${DOMAIN}"
+      traefik.http.routers.motor.rule: "Host(`monitor.${DOMAIN}`)"
+      traefik.http.routers.motor.tls.certresolvers: "sample"
       traefik.port: "8080"
       com.centurylinklabs.watchtower.enable: "true"
     restart: unless-stopped
@@ -30,14 +31,12 @@ services:
       - "32400:32400/udp"
       - "32469:32469"
       - "32469:32469/udp"
-      - "5353:5353/udp"
       - "1900:1900/udp"
     volumes:
       - "${CONFIG}/plex:/config"
-      - "${DATA}/Series:/media/series"
-      - "${DATA}/Movies:/media/movies"
       - "${DATA}/series:/media/series_2"
       - "${DATA}/movies:/media/movies_2"
+      - "${DATA}/pictures:/media/pictures"
     environment:
       - PGID
       - PUID
@@ -46,7 +45,9 @@ services:
     labels:
       traefik.enable: "true"
       traefik.port: "32400"
-      traefik.frontend.rule: "Host:plex.${DOMAIN}"
+      traefik.http.services.plex-service.loadbalancer.server.port: "32400"
+      traefik.http.routers.plex.rule: "Host(`plex.${DOMAIN}`)"
+      traefik.http.routers.plex.tls.certresolver: "sample"
       com.centurylinklabs.watchtower.enable: "true"
     restart: unless-stopped
   sabnzbd:
@@ -60,7 +61,8 @@ services:
     labels:
       traefik.enable: "true"
       traefik.port: "8080"
-      traefik.frontend.rule: "Host:sabnzbd.${DOMAIN}"
+      traefik.http.routers.sabnzbd.rule: "Host(`sabnzbd.${DOMAIN}`)"
+      traefik.http.routers.sabnzbd.tls.certresolver: "sample"
       com.centurylinklabs.watchtower.enable: "true"
     environment:
       - "PUID=${PUID}"
@@ -81,7 +83,8 @@ services:
     labels:
       traefik.enable: "true"
       traefik.port: "8989"
-      traefik.frontend.rule: "Host:sonarr.${DOMAIN}"
+      traefik.http.routers.sonarr.rule: "Host(`sonarr.${DOMAIN}`)"
+      traefik.http.routers.sonarr.tls.certresolver: "sample"
       com.centurylinklabs.watchtower.enable: "true"
     environment:
       - "PUID=${PUID}"
@@ -102,7 +105,9 @@ services:
     labels:
       traefik.enable: "true"
       traefik.port: "7878"
-      traefik.frontend.rule: "Host:radarr.${DOMAIN}"
+      traefik.http.services.radarr-service.loadbalancer.server.port: "7878"
+      traefik.http.routers.radarr.rule: "Host(`radarr.${DOMAIN}`)"
+      traefik.http.routers.radarr.tls.certresolver: "sample"
       com.centurylinklabs.watchtower.enable: "true"
   portainer:
     image: portainer/portainer
@@ -198,7 +203,7 @@ services:
     environment:
       - PGID
       - PUID
-      - TZ
+      - TZ=Europe/Zurich
   duplicati:
     image: linuxserver/duplicati
     container_name: duplicati
@@ -239,6 +244,10 @@ services:
       - wpdb
     image: wordpress:latest
     restart: unless-stopped
+    volumes:
+      - "${CONFIG}/wordpress/php.conf.ini:/usr/local/etc/php/conf.d/conf.ini"
+      - "${CONFIG}/wordpress/html:/var/www/html"
+      - "${CONFIG}/wordpress/php.ini:/etc/php/7.0/apache2/php.ini"
     environment:
       WORDPRESS_DB_HOST: "wpdb:3306"
       WORDPRESS_DB_USER: "wordpress"
