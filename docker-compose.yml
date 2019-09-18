@@ -3,8 +3,7 @@ services:
   traefik:
     image: "traefik:latest"
     command: >-
-      --api.insecure=true --api.dashboard=true --web --providers.docker --docker.watch --docker.domain=${DOMAIN}
-      --docker.exposedbydefault=false --acme.domains=${DOMAIN}
+      --api --api.insecure=true --api.dashboard=true --providers.docker
     container_name: traefik
     hostname: traefik
     ports:
