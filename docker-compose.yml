@@ -218,7 +218,9 @@ services:
     labels:
       traefik.enable: "true"
       traefik.port: "8200"
-      traefik.frontend.rule: "Host:duplicati.${DOMAIN}"
+      traefik.http.services.tautulli-service.loadbalancer.server.port: "8200"
+      traefik.http.routers.duplicati.rule: "Host(`duplicati.${DOMAIN}`)"
+      traefik.http.routers.duplicati.tls.certresolver: "sample"
       com.centurylinklabs.watchtower.enable: "true"
     environment:
       - PGID
