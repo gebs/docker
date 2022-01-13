@@ -1,0 +1,62 @@
+version: "3"
+services:
+  sabnzbd:
+    image: linuxserver/sabnzbd
+    container_name: sabnzbd
+    ports: 
+      - "8080:8080"
+    volumes:
+      - "/opt/appdata/sabnzbd:/config"
+      - "/opt/downloads/complete:/downloads"
+      - "/opt/downloads/incomplete:/incomplete-downloads"
+    restart: unless-stopped
+    labels:
+      traefik.enable: "true"
+      traefik.port: "8080"
+      traefik.http.routers.sabnzbd.rule: "Host(`sabnzbd.${DOMAIN}`)"
+      traefik.http.routers.sabnzbd.tls.certresolver: "sample"
+      com.centurylinklabs.watchtower.enable: "true"
+    environment:
+      - "PUI=1001"
+      - "PGID=1001"
+      - TZ=Europe/London
+  watchtower:
+    image: v2tec/watchtower
+    command: '--cleanup --label-enable --schedule="0 2 * * *"'
+    restart: unless-stopped
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+  organzir:
+    image: organizr/organizr
+    container_name: organizr
+    volumes:
+      - "/opt/appdata/organizr:/config"
+    restart: unless-stopped
+    ports: 
+      - "80:80"
+    labels:
+      traefik.enable: "true"
+      traefik.port: "80"
+      traefik.frontend.rule: "Host:${DOMAIN}"
+      com.centurylinklabs.watchtower.enable: "true"
+    environment:
+      - "PUI=1001"
+      - "PGID=1001"
+      - TZ=Europe/London
+  posterr:
+    image: petersem/posterr
+    container_name: posterr
+    volumes:
+      - "/opt/appdata/posterr:/usr/src/app/config"
+      - "/opt/appdata/posterr2:/usr/src/app/public/custom"
+    ports:
+      - 9876:3000
+    restart: unless-stopped
+  ddclient:
+    image: linuxserver/ddclient
+    container_name: ddclient
+    volumes:
+      - /opt/appdata/ddclient:/config
+    labels:
+      com.centurylinklabs.watchtower.enable: "true"
+    restart: unless-stopped
