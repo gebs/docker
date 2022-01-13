@@ -1,4 +1,4 @@
-{
+{	
   "ignition": {
     "version": "3.0.0"
   },
@@ -39,7 +39,7 @@
       },
       {
         "contents": {
-          "source": "data:,%23%20Enable%20SSH%20password%20login%0APasswordAuthentication%20yes"
+          "source": "data:,%23%20Enable%20SSH%20password%20login%0APasswordAuthentication%20yes%0A"
         },
         "mode": 420,
         "path": "/etc/ssh/sshd_config.d/20-enable-passwords.conf"
