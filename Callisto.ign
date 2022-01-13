@@ -18,7 +18,7 @@
     "files": [
       {
         "contents": {
-          "source": "data:,Callisto%0A"
+          "source": "data:,CoreOS%0A"
         },
         "mode": 420,
         "path": "/etc/hostname"
