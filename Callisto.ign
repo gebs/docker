@@ -9,7 +9,7 @@
           "sudo",
           "docker"
         ],
-        "name": "admin",
+        "name": "gebs",
         "passwordHash": "$y$j9T$n6h8P2ik8tfoNUFBBoly00$7bnrMF8oFrB25Fc3NqigqEH/MI5YXIJwtCG/iEsns.2"
       }
     ]
@@ -18,7 +18,7 @@
     "files": [
       {
         "contents": {
-          "source": "data:,CoreOS%0A"
+          "source": "data:,Callisto%0A"
         },
         "mode": 420,
         "path": "/etc/hostname"
